@@ -7,6 +7,16 @@ internal sealed class TruncateFilter : IBindingFilter
 {
     public string Alias => "truncate";
 
+    public string Name => "Truncate";
+
+    public string? Description => "Shortens text to a maximum length, adding an optional suffix when it is cut.";
+
+    public IReadOnlyList<BindingFilterArgument> Arguments { get; } =
+    [
+        new BindingFilterArgument { Name = "Length", Placeholder = "100", IsRequired = true, Type = BindingFilterArgumentType.Integer },
+        new BindingFilterArgument { Name = "Suffix", Placeholder = "...", Description = "Added to the end when the text is cut." },
+    ];
+
     public object? Apply(object? value, string[] args)
     {
         if (value is not string str || args.Length == 0)

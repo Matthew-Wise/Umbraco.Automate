@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Umbraco.Automate.Core.Actions;
+using Umbraco.Automate.Core.Bindings;
 using Umbraco.Automate.Core.ControlFlow;
 using Umbraco.Automate.Core.Connections;
 using Umbraco.Automate.Core.Notifications.Channels;
@@ -49,6 +50,8 @@ public class CatalogueMapDefinition : IMapDefinition
             (_, _) => new ConnectionTypeItemResponseModel(), MapToConnectionTypeItem);
         mapper.Define<IWebhookAuthenticator, WebhookAuthenticatorItemResponseModel>(
             (_, _) => new WebhookAuthenticatorItemResponseModel(), MapToWebhookAuthenticatorItem);
+        mapper.Define<IBindingFilter, BindingFilterItemResponseModel>(
+            (_, _) => new BindingFilterItemResponseModel(), MapToBindingFilterItem);
     }
 
     // Umbraco.Code.MapAll
@@ -158,5 +161,23 @@ public class CatalogueMapDefinition : IMapDefinition
         target.Name = source.Name;
         target.Description = source.Description;
         target.SettingsSchema = source.GetSettingsSchema();
+    }
+
+    // Umbraco.Code.MapAll
+    private static void MapToBindingFilterItem(IBindingFilter source, BindingFilterItemResponseModel target, MapperContext context)
+    {
+        target.Alias = source.Alias;
+        target.Name = source.Name;
+        target.Description = source.Description;
+        target.Arguments = source.Arguments
+            .Select(a => new BindingFilterArgumentResponseModel
+            {
+                Name = a.Name,
+                Description = a.Description,
+                Placeholder = a.Placeholder,
+                IsRequired = a.IsRequired,
+                Type = a.Type,
+            })
+            .ToList();
     }
 }

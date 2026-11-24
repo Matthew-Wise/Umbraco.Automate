@@ -10,6 +10,15 @@ internal sealed class FormatDateFilter : IBindingFilter
 {
     public string Alias => "formatDate";
 
+    public string Name => "Format date";
+
+    public string? Description => "Formats a date with a .NET format string, such as dd MMMM yyyy.";
+
+    public IReadOnlyList<BindingFilterArgument> Arguments { get; } =
+    [
+        new BindingFilterArgument { Name = "Format", Placeholder = "dd MMMM yyyy", Description = "A .NET date format string. Without one, the date is written as ISO 8601." },
+    ];
+
     public object? Apply(object? value, string[] args)
     {
         var format = args.Length == 0 ? "O" : args[0];

@@ -9,6 +9,10 @@ internal sealed class JsonFilter : IBindingFilter
 {
     public string Alias => "json";
 
+    public string Name => "JSON";
+
+    public string? Description => "Writes the value out as JSON.";
+
     public object? Apply(object? value, string[] args)
         => value is null ? "null" : JsonSerializer.Serialize(value);
 }

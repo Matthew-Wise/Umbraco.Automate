@@ -9,6 +9,10 @@ internal sealed partial class StripHtmlFilter : IBindingFilter
 {
     public string Alias => "stripHtml";
 
+    public string Name => "Strip HTML";
+
+    public string? Description => "Removes HTML tags from text.";
+
     public object? Apply(object? value, string[] args)
         => value is string str ? HtmlTagRegex().Replace(str, string.Empty) : value;
 

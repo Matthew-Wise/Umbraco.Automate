@@ -7,6 +7,15 @@ internal sealed class FallbackFilter : IBindingFilter
 {
     public string Alias => "fallback";
 
+    public string Name => "Fallback";
+
+    public string? Description => "Uses another value when the value is missing or empty.";
+
+    public IReadOnlyList<BindingFilterArgument> Arguments { get; } =
+    [
+        new BindingFilterArgument { Name = "Value", Placeholder = "Fallback value", IsRequired = true },
+    ];
+
     public object? Apply(object? value, string[] args)
     {
         if (args.Length == 0)

@@ -96,6 +96,55 @@ public sealed class BindingEvaluator
     internal bool IsKnownFilter(string alias) => _filters.ContainsKey(alias);
 
     /// <summary>
+    /// Runs a sample value through a chain of filters the way <see cref="Evaluate"/> would, and
+    /// returns what each filter produced, so the backoffice can show the effect of every filter as
+    /// it is added. The sample is read the way a resolved path is: JSON object or array text
+    /// becomes an object or list, so filters see the same shapes they would see in a run.
+    /// </summary>
+    /// <param name="sample">The sample value, as text. Null stands for a missing value.</param>
+    /// <param name="filters">The filters, in the order they are applied.</param>
+    /// <returns>
+    /// One step per filter applied, with its stringified result. The chain stops at the first
+    /// filter that does not exist or throws, whose step carries an error instead of a result.
+    /// </returns>
+    internal IReadOnlyList<BindingFilterPreviewStep> PreviewFilters(
+        string? sample,
+        IEnumerable<(string Alias, string[] Args)> filters)
+    {
+        var steps = new List<BindingFilterPreviewStep>();
+        var value = EnsureUnwrapped(sample);
+
+        foreach (var (alias, args) in filters)
+        {
+            if (!_filters.TryGetValue(alias, out var filter))
+            {
+                steps.Add(new BindingFilterPreviewStep(
+                    null,
+                    BindingTokenizer.IsWellFormedFilterAlias(alias)
+                        ? $"The binding filter '{alias}' does not exist."
+                        : "The binding filter name is not valid."));
+                break;
+            }
+
+            try
+            {
+                value = filter.Apply(value, args);
+            }
+            catch (Exception)
+            {
+                // A filter is third-party code: report that it failed on this sample rather than
+                // fail the request. Its message is not echoed, as it may quote the sample.
+                steps.Add(new BindingFilterPreviewStep(null, "The filter could not be applied to this value."));
+                break;
+            }
+
+            steps.Add(new BindingFilterPreviewStep(Stringify(value), null));
+        }
+
+        return steps;
+    }
+
+    /// <summary>
     /// Evaluates a template that is expected to be a single unfiltered binding
     /// (e.g. <c>${ steps.x.matches }</c>) and returns the raw resolved value —
     /// useful for callers that need to inspect collection emptiness or types
